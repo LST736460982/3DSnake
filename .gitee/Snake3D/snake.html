@@ -1,0 +1,328 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      margin: 0px;
+      overflow: hidden;
+      background-color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <audio src="./backMusic.m4a" hidden="true" autoplay="true" loop="true">
+  </audio>
+</body>
+<script src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
+<script src="http://www.yanhuangxueyuan.com/threejs/examples/js/controls/OrbitControls.js"></script>
+<script>
+  var scene = new THREE.Scene()
+  var group = new THREE.Group
+  var geo1 = new THREE.BoxGeometry(40, 40, 40)
+  var material = new THREE.MeshLambertMaterial({
+    // color: 0x1ff444
+    map: new THREE.TextureLoader().load('./snakeHead.jpg')
+  })
+  var geometry1 = new THREE.Geometry()
+  var geometry2 = new THREE.Geometry()
+  var geometry3 = new THREE.Geometry()
+  var geometry4 = new THREE.Geometry()
+  var materialChange = new THREE.MeshLambertMaterial({
+    map: new THREE.TextureLoader().load('./food.jpg')
+  })
+  var materialBody = new THREE.MeshLambertMaterial({
+    color: 0x5ff444
+  })
+  var score = 0
+  var previousKey = '0'
+  var arr = []
+  var body = []
+  var geo2 = new THREE.BoxGeometry(40, 40, 40)
+  var mesh1 = new THREE.Mesh(geo1, material)
+  var mesh2 = new THREE.Mesh(geo2, materialChange.clone())
+  var span = 10
+  var mapSpan = 420
+  var lineMaterial = new THREE.LineBasicMaterial({
+
+    color: 0xfffbb0,
+
+  });
+  var point = new THREE.PointLight(0xeeefff)
+  var ambient = new THREE.AmbientLight(0xfff4f4)
+  var width = window.innerWidth; //窗口宽度
+  var height = window.innerHeight; //窗口高度
+  var k = width / height; //窗口宽高比
+  var s = 800; //三维场景显示范围控制系数，系数越大，显示的范围越大
+  //创建相机对象-s * k, s * k, s, -s,
+  var camera = new THREE.PerspectiveCamera(100, width / height, 1, 1000);
+  var renderer = new THREE.WebGLRenderer({ alpha: true });
+  var orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+  var textureTree = new THREE.TextureLoader().load("./3.png");
+  var plane = new THREE.PlaneGeometry(400, 200)
+  var spriteText = new THREE.Mesh(plane, createText(score))
+  spriteText.position.set(100, 600, -500)
+  scene.add(spriteText)
+  var group1 = new THREE.Group()
+  //初始化边界
+  function initMap() {
+    geometry1.vertices = [
+      new THREE.Vector3(mapSpan, mapSpan, mapSpan),
+      new THREE.Vector3(-mapSpan, mapSpan, mapSpan),
+      new THREE.Vector3(-mapSpan, mapSpan, -mapSpan),
+      new THREE.Vector3(mapSpan, mapSpan, -mapSpan),
+      new THREE.Vector3(mapSpan, mapSpan, mapSpan),
+      new THREE.Vector3(mapSpan, -mapSpan, mapSpan),
+      new THREE.Vector3(-mapSpan, -mapSpan, mapSpan),
+      new THREE.Vector3(-mapSpan, -mapSpan, -mapSpan),
+      new THREE.Vector3(mapSpan, -mapSpan, -mapSpan),
+      new THREE.Vector3(mapSpan, mapSpan, -mapSpan),
+    ]
+    geometry2.vertices = [
+      new THREE.Vector3(-mapSpan, mapSpan, mapSpan),
+      new THREE.Vector3(-mapSpan, -mapSpan, mapSpan)
+    ]
+    geometry3.vertices = [
+      new THREE.Vector3(-mapSpan, mapSpan, -mapSpan),
+      new THREE.Vector3(-mapSpan, -mapSpan, -mapSpan),
+    ]
+    geometry4.vertices = [
+      new THREE.Vector3(mapSpan, -mapSpan, -mapSpan),
+      new THREE.Vector3(mapSpan, -mapSpan, mapSpan),
+    ]
+
+    scene.add(new THREE.Line(geometry1, lineMaterial))
+    scene.add(new THREE.Line(geometry2, lineMaterial))
+    scene.add(new THREE.Line(geometry3, lineMaterial))
+    scene.add(new THREE.Line(geometry4, lineMaterial))
+  }
+  //创建画布，输入文本
+  function getTextCanvas(text) {
+    var width = 512, height = 256;
+    var canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#efedd3';
+    ctx.fillRect(0, 0, width, height);
+    ctx.font = 50 + 'px " bold';
+    ctx.fillStyle = '#0001FF';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, width / 2, height / 2);
+    return canvas;
+  }
+  //设置得分的文本材质
+  function createText(scoreNumber) {
+    var spriteMaterial = new THREE.MeshLambertMaterial({
+      map: new THREE.CanvasTexture(getTextCanvas("得分：" + scoreNumber + "分")),//设置精灵纹理贴图
+
+    });
+    return spriteMaterial
+
+  }
+  //初始化雪景特效
+  function initSnow() {
+    // 大量创建雪花精灵
+    for (let i = 0; i < 824; i++) {
+      var spriteMaterial = new THREE.SpriteMaterial({
+        map: textureTree,//设置精灵纹理贴图
+      });
+      // 创建精灵模型对象
+      var sprite = new THREE.Sprite(spriteMaterial);
+      group1.add(sprite);
+      // 控制精灵大小,
+      sprite.scale.set(30, 30, 1); //// 只需要设置x、y两个分量就可以，因为精灵总会正对你，z轴将没有用
+      var k1 = Math.random() - 0.5;
+      var k2 = Math.random();
+      var k3 = Math.random() - 0.5;
+      // 设置精灵模型位置，在整个空间上上随机分布
+      sprite.position.set(3024 * k1, 1800 * k2 + 500, 3024 * k3)
+    }
+    scene.add(group1)
+  }
+  //初始化各种设备
+  function initDevice() {
+    mesh2.position.set(Math.floor(Math.random() * span) * 80 - span / 2 * 80, Math.floor(Math.random() * span) * 80 - span / 2 * 80, Math.floor(Math.random() * span) * 80 - span / 2 * 80)
+    group.add(mesh1)
+    arr.push(mesh2)
+    console.log(mesh2)
+    scene.add(group, mesh2)
+    point.position.set(0, 500, 0)
+    scene.add(point)
+    scene.add(ambient)
+    camera.position.set(0, 450, 600); //设置相机位置
+    camera.lookAt(scene.position); //设置相机方向(指向的场景对象)
+    renderer.setSize(width, height);//设置渲染区域尺寸
+    document.body.appendChild(renderer.domElement); //body元素中插入canvas对象
+    orbitControls.target = new THREE.Vector3(0, 0, 0);//控制焦点
+    orbitControls.enableKeys = false
+  }
+  //按键检测函数
+  document.onkeyup = e => {
+    if ((e.keyCode >= '37' && e.keyCode <= '40') || e.keyCode == '87' || e.keyCode == '83' || e.keyCode == '69') {
+      if (body.length > 0) {
+        //先判断是否往回走，这一个行为是禁止的，如果是，直接返回，不进行位移操作
+        if (previousKey == '37') {
+          if (e.keyCode == '39') {
+            return
+          }
+        }
+        else if (previousKey == '39') {
+          if (e.keyCode == '37') {
+            return
+          }
+        }
+        else if (previousKey == '38') {
+          if (e.keyCode == '40') {
+            return
+          }
+        }
+        else if (previousKey == '40') {
+          if (e.keyCode == '38') {
+            return
+          }
+        }
+        else if (previousKey == '87') {
+          if (e.keyCode == '83') {
+            return
+          }
+        }
+        else if (previousKey == '83') {
+          if (e.keyCode == '87') {
+            return
+          }
+        }
+      }
+      if (detection(group.children[0], arr[0])) {
+        score += 1
+        spriteText.material = createText(score).clone()
+        if (score == 7) {
+          initSnow()
+        }
+        var bodyComponent = arr.pop()
+        bodyComponent.material = materialBody.clone()
+        group.add(bodyComponent)
+        body.push(bodyComponent)
+        var mesh = new THREE.Mesh(new THREE.BoxGeometry(40, 40, 40), materialChange.clone())
+        mesh.position.set(Math.floor(Math.random() * span) * 80 - span / 2 * 80, Math.floor(Math.random() * span) * 80 - span / 2 * 80, Math.floor(Math.random() * span) * 80 - span / 2 * 80)
+        for (var i = 0; i < body.length; i++) {
+          if (detection(mesh, body[i])) {
+            mesh.position.set(Math.floor(Math.random() * span) * 80 - span / 2 * 80, Math.floor(Math.random() * span) * 80 - span / 2 * 80, Math.floor(Math.random() * span) * 80 - span / 2 * 80)
+            i = 0
+            continue
+          }
+        }
+        arr.push(mesh)
+        scene.add(mesh)
+      }
+      if (e.keyCode == '37') {
+        moveX(-40)
+      }
+      else if (e.keyCode == '39') {
+        moveX(40)
+      }
+      else if (e.keyCode == '38') {
+        moveZ(-40)
+      }
+      else if (e.keyCode == '40') {
+        moveZ(40)
+      }
+      else if (e.keyCode == '87') {
+        moveY(40)
+      }
+      else if (e.keyCode == '83') {
+        moveY(-40)
+      }
+      else if (e.keyCode == '69') {
+        camera.position.set(group.children[0].position.x + 100, group.children[0].position.y + 200, group.children[0].position.z + 400); //设置相机位置
+        camera.lookAt(group.children[0].position); //设置相机方向(指向的场景对象)
+      }
+      if (mesh1.position.x == 400 || mesh1.position.x == -400 || mesh1.position.y == 400 || mesh1.position.y == -400 || mesh1.position.z == 400 || mesh1.position.z == -400) {
+        lineMaterial.color.set(0xDC143C)
+      }
+      else {
+        lineMaterial.color.set(0xfffbb0)
+      }
+      if (mesh1.position.x > 400 || mesh1.position.x < -400 || mesh1.position.y > 400 || mesh1.position.y < -400 || mesh1.position.z > 400 || mesh1.position.z < -400) {
+        alert("嗨！baby！出界了")
+        window.location.href = window.location.href
+      }
+      body.forEach(component => {
+        if (detection(group.children[0], component)) {
+          alert("你杀死了你自己")
+          window.location.href = window.location.href
+        }
+      })
+      previousKey = e.keyCode
+    }
+  }
+  //重合检测
+  function detection(object, subject) {
+    if (object.position.x == subject.position.x && object.position.y == subject.position.y && object.position.z == subject.position.z) {
+      return true
+    }
+    else {
+      return false
+    }
+  }
+  //X轴移动函数
+  function moveX(add) {
+    var n = group.children.length;
+    var previous = group.children[0].position.clone()
+    group.children[0].position.x += add
+    point.position.x += add
+    for (var i = 1; i < n; i++) {
+      current = group.children[i].position.clone();
+      group.children[i].position.set(previous.x, previous.y, previous.z)
+      previous = current
+    }
+  }
+  //Y轴移动函数
+  function moveY(add) {
+    var n = group.children.length;
+    var previous = group.children[0].position.clone()
+    group.children[0].position.y += add
+    point.position.y += add
+    for (var i = 1; i < n; i++) {
+      current = group.children[i].position.clone();
+      group.children[i].position.set(previous.x, previous.y, previous.z)
+      previous = current
+    }
+  }
+  //Z轴移动函数
+  function moveZ(add) {
+    var n = group.children.length;
+    var previous = group.children[0].position.clone()
+    group.children[0].position.z += add
+    point.position.z += add
+    for (var i = 1; i < n; i++) {
+      current = group.children[i].position.clone();
+      group.children[i].position.set(previous.x, previous.y, previous.z)
+      previous = current
+    }
+  }
+  //渲染函数
+  function render() {
+    renderer.render(scene, camera)
+    group1.children.forEach((sprite) => {
+      sprite.position.y -= 0.5
+      if (sprite.position.y < -500) {
+        sprite.position.y = 600
+      }
+    })
+    requestAnimationFrame(render)
+  }
+  //主函数
+  function main() {
+    // textCreate()
+    createText(score)
+    initMap()
+    initDevice()
+    render()
+  }
+  main()
+</script>
+
+</html>
