@@ -1,23 +1,23 @@
 # 贪吃蛇3D版
 
 #### 介绍
+
 这个一款船森的版本 只需体验三分钟 你就会跟我一样 爱上这款游戏
+文件所在目录/.git/snake/Snake3D
 
 #### 软件架构
-软件架构说明
 
+基于Threejs的3D版贪吃蛇
 
 #### 安装教程
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+首先确保电脑上有node.js，如果没有，网上直接搜索node，下载安装即可。编辑器打开文件所在目录，在终端输入npm install -g live-server安装静态服务器，解决跨域问题。然后输入live-server，进入snake.html即可开始体验。
+
 
 #### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+3D版贪吃蛇，采用透视照相机，所以里面的角度会有所不同，但能更好的体验方向感。
+![输入图片说明](https://images.gitee.com/uploads/images/2020/1023/221056_b8ed94eb_8076246.png "1.png")
 
 #### 参与贡献
 
